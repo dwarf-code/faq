@@ -5,6 +5,13 @@
   </head>
   <body>
     <h1>FAQ</h1>
-    <button hx-get="/test">Test</button>
+    <div id="faq">
+{{#allQr}}
+<section>
+<h2 id="QR-{{rowid}}">{{question}}</h2>
+<p>{{response}}</p>
+</section>
+{{/allQr}}
+</div>
   </body>
 </html>
