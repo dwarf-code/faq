@@ -6,12 +6,35 @@
   <body>
     <h1>FAQ</h1>
     <div id="faq">
-{{#allQr}}
-<section>
-<h2 id="QR-{{rowid}}">{{question}}</h2>
-<p>{{response}}</p>
-</section>
-{{/allQr}}
-</div>
+      {{#allQr}}
+      <section>
+        <h2 id="QR-{{rowid}}">{{question}}</h2>
+        <p>{{response}}</p>
+      </section>
+      {{/allQr}}
+    </div>
+    <div id="askQuestion" class="container">
+      <h2>Ask your question:</h2>
+      <form>
+        <input
+          required
+          type="text"
+          name="input-question"
+          size="55"
+          length="10"
+          maxlength="200"
+          placeholder="Your question ..."
+        />
+        <button
+          id="buttonAddQuestion"
+          hx-validate="true"
+          class="button"
+          hx-target="#askQuestion"
+          hx-post="/question"
+        >
+          Ask !
+        </button>
+      </form>
+    </div>
   </body>
 </html>

@@ -1,6 +1,7 @@
 #ifndef FAQ_TOOLS_HPP
 #define FAQ_TOOLS_HPP
 #include "FAQRow.hpp"
+#include "jwt-cpp/jwt.h"
 #include <crow.h>
 /*
  * Utilitary class.
@@ -8,6 +9,48 @@
 class Tools
 {
   public:
+    static unsigned int randomUInt()
+    {
+        // Current timestamp.
+        auto now = std::chrono::high_resolution_clock::now();
+        auto seed = now.time_since_epoch().count();
+
+        // Use current timestamp as seed for our random generator.
+        std::mt19937 generator(seed);
+
+        // Create a uniform distribution limited to unsigned int range.
+        std::uniform_int_distribution<unsigned int> distribution(0, std::numeric_limits<unsigned int>::max());
+
+        // Generate random uint.
+        return distribution(generator);
+    }
+    static int64_t currentTimestamp(const std::chrono::minutes addedminutes = std::chrono::minutes(0))
+    {
+        auto currentTime = std::chrono::system_clock::now();
+        auto finalTime = currentTime + addedminutes;
+        return finalTime.time_since_epoch().count();
+    }
+    /*
+     * Method for JWT token creation.
+     * @param iss : issuer.
+     * @param scope : token scope.
+     * @param aud : token audience.
+     * @param pkey : private key.
+     */
+    static std::string JWTToken(const std::string &iss, const std::string &scope, const std::string &aud,
+                                const std::string &pkey)
+    {
+        auto token = jwt::create()
+                         .set_issuer(iss)
+                         .set_type("JWT")
+                         .set_id("rsa-create-example")
+                         .set_issued_now()
+                         .set_expires_in(std::chrono::seconds{1800})
+                         .set_payload_claim("scope", picojson::value(scope))
+                         .set_audience(aud)
+                         .sign(jwt::algorithm::rs256("", pkey, "", ""));
+        return token;
+    }
     /*
      * Conversion from FAQRow to wvalue.
      * @param faq : row.

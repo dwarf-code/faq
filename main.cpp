@@ -15,8 +15,8 @@ int main(int argc, char *argv[])
         crow::mustache::context ctx;
         auto page = crow::mustache::load("faq.mustache.html");
 
-        MockedDataAccess mockedDataAccess;
-        GoogleSheetDataAccess googleDataAccess(config["spreadsheetId"], config["apiKey"], config["sheetId"]);
+        GoogleSheetDataAccess googleDataAccess(config["spreadsheetId"], config["apiKey"], config["sheetId"],
+                                               config["privateKey"], config["gAccount"]);
 
         IDataAccess &dataAccess = googleDataAccess;
 
@@ -35,13 +35,30 @@ int main(int argc, char *argv[])
             return page.render(ctx);
         });
 
+        CROW_ROUTE(app, "/question").methods(crow::HTTPMethod::Post)([&dataAccess](const crow::request &req) {
+            // Define a return value
+            std::string returnValue = "Error.";
+            // Retrieving body params from POST request.
+            auto bodyParams = req.get_body_params();
+            std::string question = bodyParams.get("input-question");
+
+            if (!question.empty() && question.length() <= 200)
+            {
+                if (dataAccess.createQuestion(question))
+                {
+                    returnValue = "Ok.";
+                }
+            }
+
+            return returnValue;
+        });
+
         app.port(18080).multithreaded().run();
         return 0;
     }
-else
-{
-    std::cout << "Number of arguments invalid" << std::endl;
-    return 1;
+    else
+    {
+        std::cout << "Number of arguments invalid" << std::endl;
+        return 1;
+    }
 }
-}
-
