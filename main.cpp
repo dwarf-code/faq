@@ -1,7 +1,7 @@
-#include "include/GoogleSheetDataAccess.hpp"
-#include "include/IDataAccess.hpp"
-#include "include/MockedDataAccess.hpp"
-#include "include/Tools.hpp"
+#include "GoogleSheetDataAccess.hpp"
+#include "IDataAccess.hpp"
+#include "MockedDataAccess.hpp"
+#include "Tools.hpp"
 #include <crow.h>
 #include <crow/mustache.h>
 int main(int argc, char *argv[])
