@@ -1,9 +1,12 @@
 #include "GoogleSheetDataAccess.hpp"
 #include "IDataAccess.hpp"
-#include "MockedDataAccess.hpp"
+#include "SQLiteDataAccess.hpp"
 #include "Tools.hpp"
 #include <crow.h>
 #include <crow/mustache.h>
+#include <memory>
+#include <string>
+using pDataAccess = std::unique_ptr<IDataAccess>;
 int main(int argc, char *argv[])
 {
     if (argc >= 2)
@@ -15,14 +18,21 @@ int main(int argc, char *argv[])
         crow::mustache::context ctx;
         auto page = crow::mustache::load("faq.mustache.html");
 
-        GoogleSheetDataAccess googleDataAccess(config["spreadsheetId"], config["apiKey"], config["sheetId"],
-                                               config["privateKey"], config["gAccount"]);
+        pDataAccess dataAccess = std::make_unique<GoogleSheetDataAccess>(
+            config["spreadsheetId"], config["apiKey"], config["sheetId"], config["privateKey"], config["gAccount"]);
 
-        IDataAccess &dataAccess = googleDataAccess;
-
+        if (argv[2] != nullptr)
+        {
+            std::string argv2 = argv[2];
+            if (argv2 == "--local")
+            {
+                std::cout << "Local database mode" << std::endl;
+                dataAccess = std::make_unique<SQLiteDataAccess>("faq.db");
+            }
+        }
         CROW_ROUTE(app, "/faq")
         ([&page, &ctx, &dataAccess]() {
-            auto allValidatedQ = dataAccess.getAllValidated();
+            auto allValidatedQ = dataAccess->getAllValidated();
 
             if (allValidatedQ.has_value())
             {
@@ -44,7 +54,7 @@ int main(int argc, char *argv[])
 
             if (!question.empty() && question.length() <= 200)
             {
-                if (dataAccess.createQuestion(question))
+                if (dataAccess->createQuestion(question))
                 {
                     returnValue = "Ok.";
                 }
@@ -52,6 +62,51 @@ int main(int argc, char *argv[])
 
             return returnValue;
         });
+        CROW_ROUTE(app, "/question/<int>")
+            .methods(crow::HTTPMethod::Get)([&dataAccess](const crow::request &req, int rowid) {
+                auto page = crow::mustache::load("edit.mustache.html");
+                crow::mustache::context ctx;
+
+                auto rowOpt = dataAccess->getOne(rowid);
+
+                if (rowOpt.has_value())
+                {
+                    auto faqrow = rowOpt.value();
+                    ctx["Qr"] = Tools::convertToWValue(faqrow);
+                }
+                return page.render(ctx);
+            });
+        CROW_ROUTE(app, "/question/<int>")
+            .methods(crow::HTTPMethod::Delete)([&dataAccess](const crow::request &req, int rowid) {
+                crow::response response;
+                response.code = 400;
+                if (dataAccess->deleteQuestion(rowid))
+                {
+                    response.set_header("HX-Redirect", "/");
+                    response.code = 200;
+                }
+                return response;
+            });
+
+        CROW_ROUTE(app, "/question/<int>")
+            .methods(crow::HTTPMethod::Put)([&dataAccess](const crow::request &req, int rowid) {
+                auto bodyParams = req.get_body_params();
+                auto keys = bodyParams.keys();
+
+                std::string stringRowid = std::to_string(rowid);
+                crow::response response;
+                response.code = 400;
+
+                if (dataAccess->updateQuestion(
+                        rowid, bodyParams.get("question-" + stringRowid), bodyParams.get("response-" + stringRowid),
+                        std::count(keys.begin(), keys.end(), "show-" + stringRowid) > 0 ? true : false))
+                {
+                    response.set_header("HX-Redirect", "/");
+                    response.code = 200;
+                }
+
+                return response;
+            });
 
         app.port(18080).multithreaded().run();
         return 0;

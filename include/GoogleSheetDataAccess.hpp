@@ -47,7 +47,7 @@ class GoogleSheetDataAccess : public IDataAccess
     /* Method for getting all validated (shown) questions.
      * @return optional with all questions/answers
      */
-    virtual std::optional<std::vector<FAQRow>> getAllValidated()
+    virtual std::optional<std::vector<FAQRow>> getAllValidated() override
     {
         auto res = mHttpClient.Get("/v4/spreadsheets/" + mSpreadsheetId + "/values:batchGet?ranges=" + mTab +
                                    "&key=" + mApiKey);
@@ -96,6 +96,26 @@ class GoogleSheetDataAccess : public IDataAccess
                 return {returnValue};
             }
         }
+        return std::nullopt;
+    }
+
+    virtual bool deleteQuestion(unsigned int rowId) override
+    {
+        return false;
+    }
+
+    virtual bool updateQuestion(unsigned int rowId, const std::string &question, const std::string &answer,
+                                bool show) override
+    {
+        return false;
+    }
+
+    virtual std::optional<FAQRow> getOne(unsigned int rowid)
+    {
+        return std::nullopt;
+    }
+    virtual std::optional<std::vector<FAQRow>> getAll() override
+    {
         return std::nullopt;
     }
 

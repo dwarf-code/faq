@@ -1,0 +1,29 @@
+<form>
+  <section>
+    <div>
+      <input
+        type="text"
+        id="question-{{Qr.rowid}}"
+        name="question-{{Qr.rowid}}"
+        value="{{Qr.question}}"
+      />
+      <button id="buttonUpdate" hx-put="/question/{{Qr.rowid}}">Save</button>
+      <button id="buttonCancel" hx-get="/faq" hx-target="#faqIndex">
+        Cancel
+      </button>
+    </div>
+    <div>
+      <input
+        id="response-{{Qr.rowid}}"
+        name="response-{{Qr.rowid}}"
+        type="text"
+        value="{{Qr.response}}"
+      />
+      <input 
+        type="checkbox" 
+        name="show-{{Qr.rowid}}" 
+        id="show-{{Qr-rowid}}" 
+        {{#Qr.show}} checked {{/Qr.show}} />
+    </div>
+  </section>
+</form>

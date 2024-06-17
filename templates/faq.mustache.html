@@ -1,8 +1,25 @@
 <div>
   <div id="faq">
     {{#allQr}}
-    <section>
-      <h2 id="QR-{{rowid}}">{{question}}</h2>
+    <section id="section-{{rowid}}">
+      <header style="display: inline-flex">
+        <h2 id="QR-{{rowid}}">{{question}}</h2>
+        <button
+          id="buttonUpdate"
+          hx-get="/question/{{rowid}}"
+          hx-target="#section-{{rowid}}"
+          style="height: 50%; margin: 25px"
+        >
+          Update
+        </button>
+        <button
+          id="buttonDelete"
+          hx-delete="/question/{{rowid}}"
+          style="height: 50%; margin: 25px"
+        >
+          Delete
+        </button>
+      </header>
       <p>{{response}}</p>
     </section>
     {{/allQr}}
@@ -31,4 +48,3 @@
     </form>
   </div>
 </div>
-

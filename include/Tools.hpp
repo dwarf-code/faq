@@ -1,6 +1,7 @@
 #ifndef FAQ_TOOLS_HPP
 #define FAQ_TOOLS_HPP
 #include "FAQRow.hpp"
+#include "SQLiteCpp/SQLiteCpp.h"
 #include "jwt-cpp/jwt.h"
 #include <crow.h>
 /*
@@ -23,6 +24,18 @@ class Tools
 
         // Generate random uint.
         return distribution(generator);
+    }
+    static FAQRow convertToFAQRow(const SQLite::Statement &query)
+    {
+
+        FAQRow row;
+
+        row.ROWID = query.getColumn(0);
+        row.QUESTION = std::string(query.getColumn(1));
+        row.RESPONSE = std::string(query.getColumn(2));
+        row.SHOW = (unsigned int)query.getColumn(3) == 1 ? true : false;
+
+        return row;
     }
     static int64_t currentTimestamp(const std::chrono::minutes addedminutes = std::chrono::minutes(0))
     {
